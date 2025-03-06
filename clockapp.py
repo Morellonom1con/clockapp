@@ -89,17 +89,24 @@ def decrement_time(t):
     if t==1:
         hour1=h1.cget("text")
         hour1=int(hour1)
+        hour2=h2.cget("text")
+        hour2=int(hour2)
         if hour1>0:
             hour1-=1
         else:
-            hour1=2
+            if hour2>3:
+                hour1=2
+                hour2=3
+            else:
+                hour1=2
         h1.config(text=str(hour1))
+        h2.config(text=str(hour2))
     elif t==2:
         hour2=h2.cget("text")
         hour1=h1.cget("text")
         hour2=int(hour2)
         hour1=int(hour1)
-        if hour1>0:
+        if hour1<2:
             if hour2>0:
                 hour2-=1
             else:
@@ -108,33 +115,33 @@ def decrement_time(t):
             if hour2>0:
                 hour2-=1
             else:
-                hour2=3
-                hour1=2
+                hour2=3                      
         h2.config(text=str(hour2))
         h1.config(text=str(hour1))
     elif t==3:
         min1=m1.cget("text")
         min1=int(min1)
-        if min1<6:
-            min1+=1
+        if min1>0:
+            min1-=1
         else:
-            min1=0
+            min1=5
         m1.config(text=str(min1))
     elif t==4:
         min2=m2.cget("text")
         min1=m1.cget("text")
         min2=int(min2)
-        if min1<6:
-            if min2<9:
-                min2+=1
+        min1=int(min1)
+        if min1>0:
+            if min2>0:
+                min2-=1
             else:
-                min2=0
+                min2=9
         else:
-            if min2<9:
-                min2+=1
+            if min2>0:
+                min2-=1
             else:
-                min2=0
-                min1=0
+                min2=9
+                min1=5
         m2.config(text=str(min2))
         m1.config(text=str(min1))
     return
@@ -171,5 +178,6 @@ minus_button3.grid(row=5, column=4)
 minus_button4 =ttk.Button(new_alarm,text="-",command=lambda: decrement_time(4))
 minus_button4.grid(row=5, column=5)
 
-
+Namebox=ttk.Entry(new_alarm,textvariable="Name", font=("Arial", 14))
+Namebox.grid(row=6,column=3,columnspan=2)
 new_alarm.mainloop()
