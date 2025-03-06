@@ -5,6 +5,9 @@ from tkinter import filedialog
 import time
 import datetime
 import pygame
+import json
+
+json_file_path="alarms.json"
 
 def check_alarm():
     alarm_time = ttk.entry.get()
@@ -19,9 +22,10 @@ def check_alarm():
         time.sleep(1)
 
 def openfile():
-    filepath=filedialog.askopenfilename(intitialdir="/home/bhargav/Downloads",title="Choose Alarm Sound",filetypes=(("audio files",".mp3"),("audio files",".m4a")))
-    file=open(filepath,'r')
-    file.close()
+    filepath=filedialog.askopenfilename(initialdir="/home/bhargav/Downloads",title="Choose Alarm Sound",filetypes=(("mp3 files","*.mp3"),("all files","*.*")))
+    if filepath!="":
+        audio_file_label.config(text=filepath)
+    return
 
 def increment_time(t):
     if t==1:
@@ -146,10 +150,27 @@ def decrement_time(t):
         m1.config(text=str(min1))
     return
         
+def save_alarm():
+    hour1=h1.cget("text")
+    hour2=h2.cget("text")
+    min1=m1.cget("text")
+    min2=m2.cget("text")
+    name=namebox.get()
+    audio_file=audio_file_label.cget("text")
+    save_entry={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file}
+    with open(json_file_path, "r") as file:
+        data = json.load(file)
+        if "alarms" not in data:
+            data["alarms"] = []
+        data["alarms"].append(save_entry)
+        with open(json_file_path, "w") as file:
+            json.dump(data, file, indent=4)
+    successful_save.deiconify()
+    return
 
 new_alarm=tk.Tk()
 new_alarm.title("Create new Alarm")
-new_alarm.geometry("400x400")
+new_alarm.geometry("400x300")
 
 plus_button1 =ttk.Button(new_alarm,text="+",command=lambda: increment_time(1))
 plus_button1.grid(row=3, column=2)
@@ -178,6 +199,24 @@ minus_button3.grid(row=5, column=4)
 minus_button4 =ttk.Button(new_alarm,text="-",command=lambda: decrement_time(4))
 minus_button4.grid(row=5, column=5)
 
-Namebox=ttk.Entry(new_alarm,textvariable="Name", font=("Arial", 14))
-Namebox.grid(row=6,column=3,columnspan=2)
+namebox=ttk.Entry(new_alarm,textvariable="Name", font=("Arial", 14))
+namebox.grid(row=6,column=3,columnspan=2)
+
+audio_file_label=ttk.Label(new_alarm,text="Audio File")
+audio_file_label.grid(row=7,column=2,columnspan=2)
+audio_file_button=ttk.Button(new_alarm,text="Choose Audio File",command=openfile)
+audio_file_button.grid(row=7,column=4,columnspan=1)
+
+save_button=ttk.Button(new_alarm,text="Save Alarm", command=save_alarm)
+save_button.grid(row=8,column=3,columnspan=2)
+
+successful_save=tk.Toplevel(new_alarm)
+successful_save.title("")
+successful_save.geometry("200x100")
+successful_save_label=ttk.Label(successful_save,text="Alarm Saved Successfully")
+successful_save_label.pack()
+successful_save_button=ttk.Button(successful_save,text="OK",command=successful_save.destroy)
+successful_save_button.pack()
+successful_save.withdraw()
+
 new_alarm.mainloop()
