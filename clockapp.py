@@ -7,7 +7,7 @@ import datetime
 import pygame
 
 def check_alarm():
-    alarm_time = entry.get()
+    alarm_time = ttk.entry.get()
     while True:
         current_time = datetime.datetime.now().strftime("%H:%M")
         if current_time == alarm_time:
@@ -27,11 +27,20 @@ def increment_time(t):
     if t==1:
         hour1=h1.cget("text")
         hour1=int(hour1)
+        hour2=h2.cget("text")
+        hour2=int(hour2)
         if hour1<2:
-            hour1+=1
+            if hour2<3:
+                hour1+=1
+            elif hour1==1:
+                hour1=2
+                hour2=3
+            else:
+                hour1+=1
         else:
             hour1=0
         h1.config(text=str(hour1))
+        h2.config(text=str(hour2))
     elif t==2:
         hour2=h2.cget("text")
         hour1=h1.cget("text")
@@ -53,7 +62,7 @@ def increment_time(t):
     elif t==3:
         min1=m1.cget("text")
         min1=int(min1)
-        if min1<6:
+        if min1<5:
             min1+=1
         else:
             min1=0
@@ -68,10 +77,8 @@ def increment_time(t):
                 min2+=1
             else:
                 min2=0
+                min1=0
         else:
-            if min2<9:
-                min2+=1
-            else:
                 min2=0
                 min1=0
         m2.config(text=str(min2))
