@@ -10,16 +10,34 @@ import json
 json_file_path="alarms.json"
 
 def check_alarm():
-    alarm_time = ttk.entry.get()
-    while True:
-        current_time = datetime.datetime.now().strftime("%H:%M")
-        if current_time == alarm_time:
-            messagebox.showinfo("Alarm", "Time's up!")
-            pygame.mixer.init()
-            pygame.mixer.music.load("alarm_sound.mp3") 
-            pygame.mixer.music.play()
-            break
-        time.sleep(1)
+    current_time = datetime.datetime.now().strftime("%H:%M")
+    
+    try:
+        with open(json_file_path, "r") as file:
+            data = json.load(file)
+            for alarm in data.get("alarms", []):
+                alarm_time = f"{alarm['hour1']}{alarm['hour2']}:{alarm['min1']}{alarm['min2']}"
+                alarm_state=alarm["state"]
+                if current_time == alarm_time && alarm_state=="enabled":
+                    pygame.mixer.init()
+                    pygame.mixer.music.load(alarm["audio_file"])
+                    pygame.mixer.music.play()
+                    alarm_activated_window=tk.Toplevel(main_window)
+                    alarm_activated_window.title("")
+                    alarm_activated_window.geometry("200x100")
+                    alarm_activated_window_label=ttk.Label(alarm_activated_window,text=f"Time's up for {alarm["name"]}")
+                    alarm_activated_window_label.pack()
+                    alarm_activated_window_button=ttk.Button(alarm_activated_window,text="OK",command=lambda : (alarm_activated_window.destroy(),pygame.mixer.music.stop(),pygame.mixer.music.unload()))
+                    alarm_activated_window_button.pack()
+                    alarm_activated_window.withdraw()
+                    alarm_activated_window.deiconify()
+                    
+                        
+
+    except FileNotFoundError:
+        pass
+
+    main_window.after(1000, check_alarm)
 
 def openfile():
     filepath=filedialog.askopenfilename(initialdir="/home/bhargav/Downloads",title="Choose Alarm Sound",filetypes=(("mp3 files","*.mp3"),("all files","*.*")))
@@ -157,7 +175,7 @@ def save_alarm():
     min2=m2.cget("text")
     name=namebox.get()
     audio_file=audio_file_label.cget("text")
-    save_entry={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file}
+    save_entry={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file,"state":"enabled"}
     with open(json_file_path, "r") as file:
         data = json.load(file)
         if "alarms" not in data:
@@ -169,7 +187,11 @@ def save_alarm():
     return
 
 def delete_alarm(alarm_frame):
-    alarm_name,alarm_time,alarm_audio,_=alarm_frame.winfo_children()
+    alarm_name,alarm_time,alarm_audio,_,state_box=alarm_frame.winfo_children()
+    if state_box.state()=="selected":
+        state="enabled"
+    else:
+        state="disabled"
     name=alarm_name.cget("text")
     time=alarm_time.cget("text")
     audio_file=alarm_audio.cget("text")
@@ -177,9 +199,18 @@ def delete_alarm(alarm_frame):
     hour2=time[1]
     min1=time[3]
     min2=time[4]
-    alarm={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file}
+    alarm={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file,"state":state}
     with open(json_file_path,"r") as file:
         data=json.load(file)
+        for alarm in data.get("alarms", []):
+            if (
+                alarm["name"] == name and
+                alarm["hour1"] == hour1 and alarm["hour2"] == hour2 and
+                alarm["min1"] == min1 and alarm["min2"] == min2 and
+                alarm["audio_file"] == audio_file
+            ):
+                alarm["state"] = "disabled"
+                break
         data["alarms"].remove(alarm)
         with open(json_file_path,"w") as file:
             json.dump(data,file,indent=4)
@@ -204,8 +235,67 @@ def load_alarms_on_start():
             alarm_time.pack(side="left")
             alarm_audio=ttk.Label(alarm_frame,text=audio_file)
             alarm_audio.pack(side="left")
+            var=tk.IntVar(value=1 if alarm["state"] == "enabled" else 0)
+            alarm_state_checkbox=ttk.Checkbutton(alarm_frame,text="Enable",variable=var,onvalue=1, offvalue=0,command=lambda f=alarm_frame: change_alarm_state(f,var))
+            alarm_state_checkbox.pack(side="left")
             delete_button=ttk.Button(alarm_frame,text="Delete",command=lambda f=alarm_frame: delete_alarm(f))
             delete_button.pack(side="right")
+    return
+
+def change_alarm_state(alarm_frame,var):
+    if var.get()==1:
+        enable_alarm(alarm_frame)
+    else:
+        disable_alarm(alarm_frame)
+
+def disable_alarm(alarm_frame):
+    alarm_name,alarm_time,alarm_audio,_,_=alarm_frame.winfo_children()
+    name=alarm_name.cget("text")
+    time=alarm_time.cget("text")
+    audio_file=alarm_audio.cget("text")
+    hour1=time[0]
+    hour2=time[1]
+    min1=time[3]
+    min2=time[4]
+    alarm={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file,"state":"enabled"}
+    with open(json_file_path,"r") as file:
+        data=json.load(file)
+        for alarm in data.get("alarms", []):
+            if (
+                alarm["name"] == name and
+                alarm["hour1"] == hour1 and alarm["hour2"] == hour2 and
+                alarm["min1"] == min1 and alarm["min2"] == min2 and
+                alarm["audio_file"] == audio_file
+            ):
+                alarm["state"] = "disabled"
+                break
+        with open(json_file_path,"w") as file:
+            json.dump(data,file,indent=4)
+    return
+
+def enable_alarm(alarm_frame):
+    alarm_name,alarm_time,alarm_audio,_,_=alarm_frame.winfo_children()
+    name=alarm_name.cget("text")
+    time=alarm_time.cget("text")
+    audio_file=alarm_audio.cget("text")
+    hour1=time[0]
+    hour2=time[1]
+    min1=time[3]
+    min2=time[4]
+    alarm={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file,"state":"disabled"}
+    with open(json_file_path,"r") as file:
+        data=json.load(file)
+        for alarm in data.get("alarms", []):
+            if (
+                alarm["name"] == name and
+                alarm["hour1"] == hour1 and alarm["hour2"] == hour2 and
+                alarm["min1"] == min1 and alarm["min2"] == min2 and
+                alarm["audio_file"] == audio_file
+            ):
+                alarm["state"] = "enabled"
+                break
+        with open(json_file_path,"w") as file:
+            json.dump(data,file,indent=4)
     return
 
 def load_alarm_on_save():
@@ -298,5 +388,7 @@ new_alarm_button=ttk.Button(main_window,text="+",command=new_alarm.deiconify)
 new_alarm_button.pack()
 
 load_alarms_on_start()
+
+check_alarm()
 
 main_window.mainloop()
