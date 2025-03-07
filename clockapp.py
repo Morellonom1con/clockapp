@@ -168,7 +168,76 @@ def save_alarm():
     successful_save.deiconify()
     return
 
-new_alarm=tk.Tk()
+def delete_alarm(alarm_frame):
+    alarm_name,alarm_time,alarm_audio,_=alarm_frame.winfo_children()
+    name=alarm_name.cget("text")
+    time=alarm_time.cget("text")
+    audio_file=alarm_audio.cget("text")
+    hour1=time[0]
+    hour2=time[1]
+    min1=time[3]
+    min2=time[4]
+    alarm={"hour1":hour1,"hour2":hour2,"min1":min1,"min2":min2,"name":name,"audio_file":audio_file}
+    with open(json_file_path,"r") as file:
+        data=json.load(file)
+        data["alarms"].remove(alarm)
+        with open(json_file_path,"w") as file:
+            json.dump(data,file,indent=4)
+    alarm_frame.destroy()
+    return
+
+def load_alarms_on_start():
+    with open(json_file_path,"r") as file:
+        data=json.load(file)
+        for alarm in data['alarms']:
+            hour1=alarm['hour1']
+            hour2=alarm['hour2']
+            min1=alarm['min1']
+            min2=alarm['min2']
+            name=alarm['name']
+            alarm_frame=ttk.Frame(main_window)
+            alarm_frame.pack()
+            audio_file=alarm['audio_file']
+            alarm_name=ttk.Label(alarm_frame,text=name)
+            alarm_name.pack(side="left")
+            alarm_time=ttk.Label(alarm_frame,text=hour1+hour2+":"+min1+min2)
+            alarm_time.pack(side="left")
+            alarm_audio=ttk.Label(alarm_frame,text=audio_file)
+            alarm_audio.pack(side="left")
+            delete_button=ttk.Button(alarm_frame,text="Delete",command=lambda f=alarm_frame: delete_alarm(f))
+            delete_button.pack(side="right")
+    return
+
+def load_alarm_on_save():
+    with open(json_file_path,"r") as file:
+        data=json.load(file)
+        alarm=data["alarms"][-1]
+        hour1=alarm['hour1']
+        hour2=alarm['hour2']
+        min1=alarm['min1']
+        min2=alarm['min2']
+        name=alarm['name']
+        alarm_frame=ttk.Frame(main_window)
+        alarm_frame.pack()
+        audio_file=alarm['audio_file']
+        alarm_name=ttk.Label(alarm_frame,text=name)
+        alarm_name.pack(side="left")
+        alarm_time=ttk.Label(alarm_frame,text=hour1+hour2+":"+min1+min2)
+        alarm_time.pack(side="left")
+        alarm_audio=ttk.Label(alarm_frame,text=audio_file)
+        alarm_audio.pack(side="left")
+        delete_button=ttk.Button(alarm_frame,text="Delete",command=lambda f=alarm_frame: delete_alarm(f))
+        delete_button.pack(side="right")
+
+main_window=tk.Tk()
+main_window.title("Clock App")
+main_window.geometry("400x300")
+
+##
+#Create new alarm window
+##
+
+new_alarm=tk.Toplevel(main_window)
 new_alarm.title("Create new Alarm")
 new_alarm.geometry("400x300")
 
@@ -209,14 +278,25 @@ audio_file_button.grid(row=7,column=4,columnspan=1)
 
 save_button=ttk.Button(new_alarm,text="Save Alarm", command=save_alarm)
 save_button.grid(row=8,column=3,columnspan=2)
+new_alarm.withdraw()
+
+##
+#save succesful window
+##
 
 successful_save=tk.Toplevel(new_alarm)
 successful_save.title("")
 successful_save.geometry("200x100")
 successful_save_label=ttk.Label(successful_save,text="Alarm Saved Successfully")
 successful_save_label.pack()
-successful_save_button=ttk.Button(successful_save,text="OK",command=successful_save.destroy)
+successful_save_button=ttk.Button(successful_save,text="OK",command=lambda : (successful_save.master.destroy()
+                                                                     ,load_alarm_on_save()))
 successful_save_button.pack()
 successful_save.withdraw()
 
-new_alarm.mainloop()
+new_alarm_button=ttk.Button(main_window,text="+",command=new_alarm.deiconify)
+new_alarm_button.pack()
+
+load_alarms_on_start()
+
+main_window.mainloop()
