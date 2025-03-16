@@ -6,6 +6,8 @@ import time
 import datetime
 import pygame
 import json
+from ttkthemes import ThemedTk
+from PIL import Image, ImageTk
 
 json_file_path="alarms.json"
 
@@ -18,10 +20,13 @@ def check_alarm():
             for alarm in data.get("alarms", []):
                 alarm_time = f"{alarm['hour1']}{alarm['hour2']}:{alarm['min1']}{alarm['min2']}"
                 alarm_state=alarm["state"]
-                if current_time == alarm_time && alarm_state=="enabled":
+                if current_time == alarm_time and alarm_state=="enabled":
                     pygame.mixer.init()
                     pygame.mixer.music.load(alarm["audio_file"])
                     pygame.mixer.music.play()
+                    alarm["state"]="disabled"
+                    with open(json_file_path,"w") as file:
+                        json.dump(data,file,indent=4)
                     alarm_activated_window=tk.Toplevel(main_window)
                     alarm_activated_window.title("")
                     alarm_activated_window.geometry("200x100")
@@ -31,6 +36,7 @@ def check_alarm():
                     alarm_activated_window_button.pack()
                     alarm_activated_window.withdraw()
                     alarm_activated_window.deiconify()
+
                     
                         
 
@@ -316,6 +322,9 @@ def load_alarm_on_save():
         alarm_time.pack(side="left")
         alarm_audio=ttk.Label(alarm_frame,text=audio_file)
         alarm_audio.pack(side="left")
+        var=tk.IntVar(value=1 if alarm["state"] == "enabled" else 0)
+        alarm_state_checkbox=ttk.Checkbutton(alarm_frame,text="Enable",variable=var,onvalue=1, offvalue=0,command=lambda f=alarm_frame: change_alarm_state(f,var))
+        alarm_state_checkbox.pack(side="left")
         delete_button=ttk.Button(alarm_frame,text="Delete",command=lambda f=alarm_frame: delete_alarm(f))
         delete_button.pack(side="right")
 
