@@ -27,7 +27,7 @@ def check_alarm():
                     alarm["state"]="disabled"
                     with open(json_file_path,"w") as file:
                         json.dump(data,file,indent=4)
-                    alarm_activated_window=tk.Toplevel(main_window)
+                    alarm_activated_window=tk.Toplevel(alarms_window)
                     alarm_activated_window.title("")
                     alarm_activated_window.geometry("200x100")
                     alarm_activated_window_label=ttk.Label(alarm_activated_window,text=f"Time's up for {alarm["name"]}")
@@ -43,7 +43,7 @@ def check_alarm():
     except FileNotFoundError:
         pass
 
-    main_window.after(1000, check_alarm)
+    alarms_window.after(1000, check_alarm)
 
 def openfile():
     filepath=filedialog.askopenfilename(initialdir="/home/bhargav/Downloads",title="Choose Alarm Sound",filetypes=(("mp3 files","*.mp3"),("all files","*.*")))
@@ -232,7 +232,7 @@ def load_alarms_on_start():
             min1=alarm['min1']
             min2=alarm['min2']
             name=alarm['name']
-            alarm_frame=ttk.Frame(main_window)
+            alarm_frame=ttk.Frame(alarms_window)
             alarm_frame.pack()
             audio_file=alarm['audio_file']
             alarm_name=ttk.Label(alarm_frame,text=name)
@@ -313,7 +313,7 @@ def load_alarm_on_save():
         min1=alarm['min1']
         min2=alarm['min2']
         name=alarm['name']
-        alarm_frame=ttk.Frame(main_window)
+        alarm_frame=ttk.Frame(alarms_window)
         alarm_frame.pack()
         audio_file=alarm['audio_file']
         alarm_name=ttk.Label(alarm_frame,text=name)
@@ -328,15 +328,47 @@ def load_alarm_on_save():
         delete_button=ttk.Button(alarm_frame,text="Delete",command=lambda f=alarm_frame: delete_alarm(f))
         delete_button.pack(side="right")
 
+
 main_window=tk.Tk()
 main_window.title("Clock App")
 main_window.geometry("400x300")
+current_time = datetime.datetime.now().strftime("%H:%M")
+
+alarms_window=tk.Toplevel(main_window)
+alarms_window.title("alarms")
+alarms_window.withdraw()
+
+main_window_time=tk.Label(main_window,text=datetime.datetime.now().strftime("%H:%M"),font=('Helvetica',40))
+main_window_time.pack()
+
+alarms_window_button=ttk.Button(main_window,text="alarms",command=alarms_window.deiconify)
+alarms_window_button.pack()
+
+timer_window=tk.Toplevel(main_window)
+timer_window.title("timer")
+timer_window.withdraw()
+
+timer_time=tk.Label(timer_window,text="timer time goes here")
+timer_time.pack()
+
+timer_pause=tk.Button(timer_window,text='Pause',command=lambda: pause_timer())
+timer_delete=tk.Button(timer_window,text='delete',command=lambda: delete_timer())
+timer_pause.pack()
+timer_delete.pack()
+
+timer_window_button=ttk.Button(main_window,text="timer",command=timer_window.deiconify)
+timer_window_button.pack()
+
+timer_audio_file_label=ttk.Label(timer_window,text="Audio File")
+timer_audio_file_button=ttk.Button(timer_window,text="Choose Audio File",command=openfile)
+timer_audio_file_label.pack()
+timer_audio_file_button.pack()
 
 ##
 #Create new alarm window
 ##
 
-new_alarm=tk.Toplevel(main_window)
+new_alarm=tk.Toplevel(alarms_window)
 new_alarm.title("Create new Alarm")
 new_alarm.geometry("400x300")
 
@@ -393,7 +425,7 @@ successful_save_button=ttk.Button(successful_save,text="OK",command=lambda : (su
 successful_save_button.pack()
 successful_save.withdraw()
 
-new_alarm_button=ttk.Button(main_window,text="+",command=new_alarm.deiconify)
+new_alarm_button=ttk.Button(alarms_window,text="+",command=new_alarm.deiconify)
 new_alarm_button.pack()
 
 load_alarms_on_start()
