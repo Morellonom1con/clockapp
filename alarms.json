@@ -3,9 +3,9 @@
         {
             "hour1": "0",
             "hour2": "1",
-            "min1": "0",
-            "min2": "2",
-            "name": "jkd",
+            "min1": "3",
+            "min2": "5",
+            "name": "study",
             "audio_file": "/home/bhargav/Downloads/disco_pogo.mp3",
             "state": "disabled"
         }

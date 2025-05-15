@@ -10,6 +10,7 @@ from ttkthemes import ThemedTk
 from PIL import Image, ImageTk
 
 json_file_path="alarms.json"
+timer_json_file_path="timer.json"
 
 def check_alarm():
     current_time = datetime.datetime.now().strftime("%H:%M")
@@ -328,17 +329,27 @@ def load_alarm_on_save():
         delete_button=ttk.Button(alarm_frame,text="Delete",command=lambda f=alarm_frame: delete_alarm(f))
         delete_button.pack(side="right")
 
+def pause_timer():
+    pass
+
+def delete_timer():
+    pass
+
+def update_time():
+    current_time = datetime.datetime.now().strftime("%H:%M")
+    main_window_time.config(text=current_time)
+    main_window.after(1000,update_time)
 
 main_window=tk.Tk()
 main_window.title("Clock App")
 main_window.geometry("400x300")
-current_time = datetime.datetime.now().strftime("%H:%M")
 
 alarms_window=tk.Toplevel(main_window)
 alarms_window.title("alarms")
 alarms_window.withdraw()
 
 main_window_time=tk.Label(main_window,text=datetime.datetime.now().strftime("%H:%M"),font=('Helvetica',40))
+update_time()
 main_window_time.pack()
 
 alarms_window_button=ttk.Button(main_window,text="alarms",command=alarms_window.deiconify)
